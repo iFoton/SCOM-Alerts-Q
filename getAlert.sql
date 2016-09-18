@@ -6,8 +6,8 @@ BEGIN
 	SELECT DISTINCT
 		A.AlertStringName AS 'Alert_Name',
 		A.AlertStringDescription AS 'Alert_Description',
-		A.TimeRaised,
-		A.RepeatCount,
+		A.TimeRaised AS 'Time_Raised',
+		A.RepeatCount AS 'Repeat_Count',
 		A.Category,
 		A.Severity,
 		A.Priority,
@@ -35,8 +35,8 @@ BEGIN
 	SELECT DISTINCT
 		A.AlertStringName AS 'Alert_Name',
 		A.AlertStringDescription AS 'Alert_Description',
-		A.TimeRaised,
-		A.RepeatCount,
+		A.TimeRaised AS 'Time_Raised',
+		A.RepeatCount AS 'Repeat_Count',
 		A.Category,
 		A.Severity,
 		A.Priority,

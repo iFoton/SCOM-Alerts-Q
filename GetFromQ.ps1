@@ -51,7 +51,7 @@ function fnMamlToHTML($MAMLText)
 	$HTMLText;
 }
 
-function Get-XML {
+function Get-HTML {
     param ( 
         $alertInfo     
     ) 
@@ -59,11 +59,17 @@ function Get-XML {
     $xml.LoadXml("<?xml version=`"1.0`" encoding=`"utf-8`"?><Alert></Alert>")
     $xmlA = $xml.SelectSingleNode("//Alert")
 
+    
+
     foreach ($alertProp in ($alertInfo.psobject.properties | select -ExpandProperty Name | ? {$_ -notin ('RowError','RowState','Table','ItemArray','HasErrors')})) {
         
         $node = $xml.CreateElement("$alertProp")
+        $xmlAtt = $xml.CreateAttribute("Name")
+        $xmlAtt.Value  = "$alertProp".replace("_"," ")
+        $node.Attributes.Append($xmlAtt) | Out-Null
         $xmlA.AppendChild($node) | Out-Null
-        $xmlA."$alertProp" = $alertInfo."$alertProp".tostring()
+        $xmlA."$alertProp".InnerText = $alertInfo."$alertProp".tostring()
+        
         #"$alertProp"
 
     }
@@ -74,20 +80,32 @@ function Get-XML {
         
     if ($paramCount -gt 0) {
         
-        $desc = $xml.Alert.Alert_Description
+        $desc = $xml.Alert.Alert_Description.InnerText
         
         for ($i=0;$i -lt $paramCount;$i++) {
             $desc = $desc.Replace("{$i}","$($param.AlertParameters."AlertParameter$($i+1)")")
         }
 
-        $xml.Alert.Alert_Description = $desc
+        $xml.Alert.Alert_Description.InnerText = $desc
     }
 
     $xml.Alert.RemoveChild($xml.SelectSingleNode('//Alert/AlertParams')) | Out-Null
-    $Knowledge = fnMamlToHTML $xml.Alert.Knowledge
-    $xml.Alert.Knowledge = 'Knowledge_replace'
+    $Knowledge = fnMamlToHTML $xml.Alert.Knowledge.InnerText
+    $xml.Alert.Knowledge.InnerText = 'Knowledge_replace'
+
+    #Sevrity fix
+
+    switch ($xml.Alert.Severity.InnerText) {
+    
+    (0) {$xml.Alert.Severity.InnerText = "Informational"}
+    (1) {$xml.Alert.Severity.InnerText = "Warning"}
+    (2) {$xml.Alert.Severity.InnerText = "Critical"}
+
+    }
     
     #Create HTML
+
+    $xml.Save("C:\Users\ivan\OneDrive\Документы\GDC\AlertsQ\temp.xml")
 
     $xslt = New-Object System.Xml.Xsl.XslCompiledTransform
     $xmlStrReader = New-Object System.IO.StringReader($xml.InnerXml)
@@ -111,7 +129,6 @@ $smtp = 'iis.f.loc'
 $subQuery = Get-Content "$rootPath\Subscription.sql"
 $alertQuery = Get-Content "$rootPath\getAlert.sql"
 
-$xmlStruct = Get-Content "$rootPath\alertInfo.xml"
 [xml]$xml = New-Object system.Xml.XmlDocument
 
 #$subQuery = "select * from Alert where Alertid = 'SUBSCRIPTION_ID'"
@@ -136,9 +153,9 @@ foreach ($alert in $AlertsQ ){
     
     #Send Mail
     $subj = 'Alert'
-    $body = Get-XML $alertInfo 
+    $body = Get-HTML $alertInfo 
     Send-MailMessage -BodyAsHtml -From $from -To $to -Subject $subj -Body $body -SmtpServer $smtp -Encoding UTF8 -Verbose
-
+    $body > "C:\Users\ivan\OneDrive\Документы\GDC\AlertsQ\temp.html"
     #Invoke-DatabaseQuery `
     # -connectionString $conStr `
     # -query "DELETE FROM dbo.SCOM_ALERTS_QUEUE WHERE QID = '$($alert.QID)'" | Out-Null

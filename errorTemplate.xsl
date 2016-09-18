@@ -7,18 +7,26 @@
 			</head>
 			<body>
 				<h2 align="center">Alert</h2>
-				<table border="1" cellpadding="0" align="center" width="50%">
+				<table border="1" cellpadding="5" align="center" width="50%">
 					<xsl:for-each select="Alert/*">
-      					<tr>
-							<td><xsl:value-of select="name()"/></td>
-							<td><xsl:value-of select="node()"/></td>
-      					</tr>
+                        <xsl:if test="not(@Name = 'Knowledge')">
+							<tr>
+								<td><xsl:value-of select="./@Name"/></td>
+								<td><xsl:value-of select="node()"/></td>
+							</tr>
+                        </xsl:if>
+                        <xsl:if test="@Name = 'Knowledge'">
+							<tr>
+								<td colspan="2" align="center"><xsl:value-of select="./@Name"/></td>
+							</tr>
+							<tr>
+								<td colspan="2"><xsl:value-of select="node()"/></td>
+							</tr>
+                        </xsl:if>
       				</xsl:for-each>
 				</table>
 			</body>
 		</html>
 	</xsl:template>
-</xsl:stylesheet>	
-
-
+</xsl:stylesheet>
 
