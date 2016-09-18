@@ -2,18 +2,18 @@ DECLARE @Id uniqueidentifier = 'ALERT_ID'
 DECLARE @IsMonitor tinyint = (SELECT DISTINCT IsMonitorAlert FROM AlertView WHERE Id = @id)
 
 IF @IsMonitor = 1
-BEGIN --If Monitor
+BEGIN
 	SELECT DISTINCT
-		A.AlertStringName AS 'Alert Name',
-		A.AlertStringDescription AS 'Alert Description',
+		A.AlertStringName AS 'Alert_Name',
+		A.AlertStringDescription AS 'Alert_Description',
 		A.TimeRaised,
 		A.RepeatCount,
 		A.Category,
 		A.Severity,
 		A.Priority,
-		M.DisplayName AS 'Monitor Name',
-		M.Description AS 'Monitor Description',
-		MP.DisplayName AS 'Management Pack',
+		M.DisplayName AS 'Monitor_Name',
+		M.Description AS 'Monitor_Description',
+		MP.DisplayName AS 'Management_Pack',
 		A.MonitoringObjectId,
 		A.MonitoringObjectDisplayName,
 		A.MonitoringObjectName,
@@ -30,19 +30,19 @@ BEGIN --If Monitor
 	M.Id = KnowledgeReferenceId
 	WHERE A.Id = @id
 END
-ELSE --If Rule
+ELSE
 BEGIN
 	SELECT DISTINCT
-		A.AlertStringName AS 'Alert Name',
-		A.AlertStringDescription AS 'Alert Description',
+		A.AlertStringName AS 'Alert_Name',
+		A.AlertStringDescription AS 'Alert_Description',
 		A.TimeRaised,
 		A.RepeatCount,
 		A.Category,
 		A.Severity,
 		A.Priority,
-		R.DisplayName AS 'Rule Name',
-		R.Description AS 'Rule Description',
-		MP.DisplayName AS 'Management Pack',
+		R.DisplayName AS 'Rule_Name',
+		R.Description AS 'Rule_Description',
+		MP.DisplayName AS 'Management_Pack',
 		A.MonitoringObjectId,
 		A.MonitoringObjectDisplayName,
 		A.MonitoringObjectName,
