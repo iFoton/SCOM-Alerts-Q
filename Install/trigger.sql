@@ -10,5 +10,6 @@ SET ResolutionState = 247,
 	LastModified = (SELECT CURRENT_TIMESTAMP),
 	LastModifiedByNonConnector = (SELECT CURRENT_TIMESTAMP),
 	LastModifiedExceptRepeatCount = (SELECT CURRENT_TIMESTAMP)
-WHERE dbo.Alert.AlertId IN (SELECT AlertID FROM deleted WHERE ResolutionState = 0)
+WHERE dbo.Alert.AlertId IN (SELECT AlertID FROM deleted WHERE isChangeState = 1) AND
+	  ResolutionState = 0
 GO

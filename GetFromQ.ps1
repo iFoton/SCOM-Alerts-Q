@@ -195,7 +195,7 @@ foreach ($alert in $AlertsQ ){
                     '$($alertInfo.Alert_Name)',
                     '$($alert.SubscriptionID)',
                     '$($subscribers.DisplayName[0])',
-                    '$Description', 
+                    '$($alert.Source): $Description', 
                      $($alertInfo.Severity))"
 
     Invoke-DatabaseQuery `
@@ -203,11 +203,11 @@ foreach ($alert in $AlertsQ ){
          -query $sendQ | Out-Null
     
     #Remove alert from Q
-    #Invoke-DatabaseQuery `
-    # -connectionString $conStr `
-    # -query "DELETE FROM dbo.SCOM_ALERTS_QUEUE WHERE QID = '$($alert.QID)'" | Out-Null
+    Invoke-DatabaseQuery `
+     -connectionString $conStr `
+     -query "DELETE FROM dbo.SCOM_ALERTS_QUEUE WHERE QID = '$($alert.QID)'" | Out-Null
 
-    pause
+    #pause
 
 }
 
