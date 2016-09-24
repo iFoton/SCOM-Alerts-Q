@@ -33,8 +33,9 @@ function Invoke-DatabaseQuery {
     $connection.close() 
 }
 
-function fnMamlToHTML($MAMLText)
+function fnMamlToHTML
 {
+    param ($MAMLText) 
 	$HTMLText = "";
 	$HTMLText = $MAMLText -replace ('xmlns:maml="http://schemas.microsoft.com/maml/2004/10"');
 	$HTMLText = $HTMLText -replace ("maml:para", "p");
@@ -53,14 +54,26 @@ function fnMamlToHTML($MAMLText)
 
 function Get-HTML {
     param ( 
-        $alertInfo     
+        $alertInfo,
+        $subscribers, 
+        $xslt    
     ) 
 
+    #Prepare subscribers info
+    $subScr = ""
+    $subscribers | % {
+        if(($_.Devicename) -and ($subScr -notlike "*$($_.Devicename)*")) {
+            $subScr += $_.DeviceName + "; "
+        }
+    }
+    $alertInfo.Subscription = $subscribers.DisplayName[0]
+    $alertInfo.Subscribers = $subScr
+
+    #Create XML
     $xml.LoadXml("<?xml version=`"1.0`" encoding=`"utf-8`"?><Alert></Alert>")
     $xmlA = $xml.SelectSingleNode("//Alert")
-
     
-
+    #Fill XML
     foreach ($alertProp in ($alertInfo.psobject.properties | select -ExpandProperty Name | ? {$_ -notin ('RowError','RowState','Table','ItemArray','HasErrors')})) {
         
         $node = $xml.CreateElement("$alertProp")
@@ -69,8 +82,6 @@ function Get-HTML {
         $node.Attributes.Append($xmlAtt) | Out-Null
         $xmlA.AppendChild($node) | Out-Null
         $xmlA."$alertProp".InnerText = $alertInfo."$alertProp".tostring()
-        
-        #"$alertProp"
 
     }
     
@@ -88,51 +99,63 @@ function Get-HTML {
 
         $xml.Alert.Alert_Description.InnerText = $desc
     }
-
+    
     $xml.Alert.RemoveChild($xml.SelectSingleNode('//Alert/AlertParams')) | Out-Null
-    $Knowledge = fnMamlToHTML $xml.Alert.Knowledge.InnerText
-    $xml.Alert.Knowledge.InnerText = 'Knowledge_replace'
+    
+    #Fill Resolution State
+    $xml.Alert.Resolution_State.InnerText = $xml.Alert.ResolutionStateName.InnerText + " (" +$xml.Alert.Resolution_State.InnerText + ")"
+    $xml.Alert.RemoveChild($xml.SelectSingleNode('//Alert/ResolutionStateName')) | Out-Null
 
-    #Sevrity fix
-
+    #Fill Knowledge
+    if ($xml.Alert.Knowledge.InnerText) {
+        $Knowledge = fnMamlToHTML $xml.Alert.Knowledge.InnerText
+        $xml.Alert.Knowledge.InnerText = 'Knowledge_replace'
+    } else {
+        $xml.Alert.RemoveChild($xml.SelectSingleNode('//Alert/Knowledge')) | Out-Null
+    }
+    
+    #Fill Sevrity
     switch ($xml.Alert.Severity.InnerText) {
     
-    (0) {$xml.Alert.Severity.InnerText = "Informational"}
-    (1) {$xml.Alert.Severity.InnerText = "Warning"}
-    (2) {$xml.Alert.Severity.InnerText = "Critical"}
+        (0) {$xml.Alert.Severity.InnerText = "Information"}
+        (1) {$xml.Alert.Severity.InnerText = "Warning"}
+        (2) {$xml.Alert.Severity.InnerText = "Critical"}
 
     }
     
-    #Create HTML
-
-    $xml.Save("C:\Users\ivan\OneDrive\Документы\GDC\AlertsQ\temp.xml")
-
-    $xslt = New-Object System.Xml.Xsl.XslCompiledTransform
+    #Create HTML    
     $xmlStrReader = New-Object System.IO.StringReader($xml.InnerXml)
-    $xmlReader = [System.Xml.XmlReader]::Create($xmlStrReader)
-    $htmlWriter = [System.IO.StringWriter]::new("")
-    $xslt.Load("$rootPath\errorTemplate.xsl")
-    
+    $xmlReader    = [System.Xml.XmlReader]::Create($xmlStrReader)
+    $htmlWriter   = New-Object System.IO.StringWriter("")
+        
     $xslt.Transform($xmlReader,$null,$htmlWriter)
     $html = $htmlWriter.ToString().Replace('Knowledge_replace',$Knowledge)
 
     Return $html
 
-
 }
 
-$rootPath = "C:\Users\ivan\OneDrive\Документы\GDC\AlertsQ"
-$conStr = 'Server=SQLSCOM\SCOM;Database=OperationsManager;Trusted_Connection=True;'
-$from = 'vCloud@f.loc'
-$smtp = 'iis.f.loc'
+if ($PSscriptRoot) {
+    $rootPath = $PSscriptRoot    
+} else {
+    $rootPath = "C:\Users\ivan\OneDrive\Документы\GDC\AlertsQ"
+    }
 
-$subQuery = Get-Content "$rootPath\Subscription.sql"
+#Prepare Objects and Query
+$confXml = [xml](Get-Content (Join-Path $rootPath "Config.xml")) 
+$conStr  = $confXml.Settings.Sender.SQLConnectionString
+$from    = $confXml.Settings.Sender.FromAddress
+$smtp    = $confXml.Settings.Sender.SMTPServerAddress
+
+$subQuery   = Get-Content "$rootPath\getSubscription.sql"
 $alertQuery = Get-Content "$rootPath\getAlert.sql"
 
-[xml]$xml = New-Object system.Xml.XmlDocument
+$xml  = New-Object system.Xml.XmlDocument
+$xslt = New-Object System.Xml.Xsl.XslCompiledTransform
+$xslt.Load("$rootPath\template.xsl")
 
-#$subQuery = "select * from Alert where Alertid = 'SUBSCRIPTION_ID'"
-$AlertsQ =  Get-DatabaseData -connectionString $conStr -query "SELECT * FROM dbo.SCOM_ALERTS_QUEUE ORDER BY TimeStmp"
+#Get alerts from Queue
+$AlertsQ =  Get-DatabaseData -connectionString $conStr -query "SELECT TOP 100 * FROM dbo.SCOM_ALERTS_QUEUE ORDER BY TimeStmp"
 
 foreach ($alert in $AlertsQ ){
     
@@ -145,21 +168,44 @@ foreach ($alert in $AlertsQ ){
     $subscribers | % {if($_.Devicename){$to += $_.Devicename}}
 
     #Get Alert Info
-    
     $alertQ = "$alertQuery".Replace("ALERT_ID","$($alert.AlertID)")
     $alertInfo =  Get-DatabaseData -connectionString $conStr -query $alertQ
+        
+    #Fill subject
+    $subj = $alertInfo.ResolutionStateName + ", Severity: "
+    switch ($alertInfo.Severity) {
     
+        (0) {$subj += "Information, "}
+        (1) {$subj += "Warning, "}
+        (2) {$subj += "Critical, "}
 
+    }
+    $subj += $alertInfo.MonitoringObjectFullName + ", " + $alertInfo.Alert_Name
     
+    #Fill body           
+    $body = Get-HTML $alertInfo $subscribers $xslt
+
     #Send Mail
-    $subj = 'Alert'
-    $body = Get-HTML $alertInfo 
     Send-MailMessage -BodyAsHtml -From $from -To $to -Subject $subj -Body $body -SmtpServer $smtp -Encoding UTF8 -Verbose
-    $body > "C:\Users\ivan\OneDrive\Документы\GDC\AlertsQ\temp.html"
+
+    #Write history
+    $Description = "Sended"
+    $sendQ = "INSERT INTO dbo.SCOM_ALERTS_QUEUE_HISTORY (AlertID,AlertName,SubscriptionID,SubscriptionName,Description,Severity)
+            VALUES ('$($alert.AlertID)',
+                    '$($alertInfo.Alert_Name)',
+                    '$($alert.SubscriptionID)',
+                    '$($subscribers.DisplayName[0])',
+                    '$Description', 
+                     $($alertInfo.Severity))"
+
+    Invoke-DatabaseQuery `
+         -connectionString $conStr `
+         -query $sendQ | Out-Null
+    
+    #Remove alert from Q
     #Invoke-DatabaseQuery `
     # -connectionString $conStr `
     # -query "DELETE FROM dbo.SCOM_ALERTS_QUEUE WHERE QID = '$($alert.QID)'" | Out-Null
-
 
     pause
 

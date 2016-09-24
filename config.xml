@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Settings>
+    <Sender>
+        <SQLConnectionString>Server=SQLSCOM\SCOM;Database=OperationsManager;Trusted_Connection=True;</SQLConnectionString>
+        <FromAddress>vCloud@f.loc</FromAddress>
+        <SMTPServerAddress>iis.f.loc</SMTPServerAddress>
+    </Sender>
+</Settings>
