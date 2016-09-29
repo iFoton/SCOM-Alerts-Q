@@ -1,0 +1,64 @@
+<?xml version="1.0"?>
+<SqlWorkbenchSqlProject xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Name="SQL SCOM Alerts Queue">
+  <Items>
+    <LogicalFolder Name="Connections" Type="2" Sorted="true">
+      <Items>
+        <ConnectionNode Name="SQLSCOM\SCOM:F\ivan">
+          <Created>2016-09-28T20:25:27.8221098+03:00</Created>
+          <Type>SQL</Type>
+          <Server>SQLSCOM\SCOM</Server>
+          <UserName />
+          <Authentication>Windows Authentication</Authentication>
+          <InitialDB>master</InitialDB>
+          <LoginTimeout>15</LoginTimeout>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
+        </ConnectionNode>
+      </Items>
+    </LogicalFolder>
+    <LogicalFolder Name="Queries" Type="0" Sorted="true">
+      <Items>
+        <FileNode Name="AddToQTrigger.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SQLSCOM\SCOM:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>SQLSCOM\SCOM</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>AddToQTrigger.sql</FullPath>
+        </FileNode>
+        <FileNode Name="AlertsQueue.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SQLSCOM\SCOM:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>SQLSCOM\SCOM</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>AlertsQueue.sql</FullPath>
+        </FileNode>
+        <FileNode Name="AlertsQueueHistory.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SQLSCOM\SCOM:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>SQLSCOM\SCOM</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>AlertsQueueHistory.sql</FullPath>
+        </FileNode>
+        <FileNode Name="AlertsQueueView.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SQLSCOM\SCOM:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>SQLSCOM\SCOM</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>AlertsQueueView.sql</FullPath>
+        </FileNode>
+        <FileNode Name="SubscribersView.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SQLSCOM\SCOM:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>SQLSCOM\SCOM</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>SubscribersView.sql</FullPath>
+        </FileNode>
+        <FileNode Name="UpdateStateTrigger.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>UpdateStateTrigger.sql</FullPath>
+        </FileNode>
+      </Items>
+    </LogicalFolder>
+    <LogicalFolder Name="Miscellaneous" Type="3" Sorted="true">
+      <Items />
+    </LogicalFolder>
+  </Items>
+</SqlWorkbenchSqlProject>

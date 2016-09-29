@@ -13,8 +13,8 @@
 		<html>
 			<head>
 				<style>
-					table { width: 50%; }
-					div   { max-width: 10px; }
+					table { width: 90%; }
+					div   { max-width: 90%; }
 				</style>
 				<title>ALERT</title>
 			</head>
