@@ -1,3 +1,5 @@
+USE OperationsManager
+GO
 CREATE VIEW dbo.AlertsQueueView  
 AS 
 SELECT

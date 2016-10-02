@@ -20,7 +20,7 @@ CREATE TABLE dbo.AlertsQueueHistory
 	AlertID uniqueidentifier NOT NULL,
 	SubscriptionID uniqueidentifier NOT NULL,
 	Source nvarchar(255) NULL,
-	isChangeState tinyint DEFAULT 1 NOT NULL,
+	isChangeState tinyint NULL,
 	Description nvarchar(255) NULL,
     TimeStmp DateTime NOT NULL    
 	)  ON [PRIMARY]

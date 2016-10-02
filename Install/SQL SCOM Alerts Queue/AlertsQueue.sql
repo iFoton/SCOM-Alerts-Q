@@ -17,10 +17,10 @@ GO
 CREATE TABLE dbo.AlertsQueue
 	(
 	QID uniqueidentifier DEFAULT NEWID() NOT NULL,
-	AlertID uniqueidentifier NOT NULL,
-	SubscriptionID uniqueidentifier NOT NULL,
+	AlertId uniqueidentifier NOT NULL,
+	SubscriptionId uniqueidentifier NOT NULL,
 	Source nvarchar(255) NULL,
-	isChangeState tinyint DEFAULT 1 NOT NULL,
+	isChangeState tinyint NULL,
 	TimeStmp DateTime DEFAULT GETDATE() NOT NULL
 	)  ON [PRIMARY]
 GO

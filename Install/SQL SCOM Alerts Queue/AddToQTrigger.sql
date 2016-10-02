@@ -1,8 +1,8 @@
 USE OperationsManager
 GO
-DROP TRIGGER [dbo].[update_state_new]
-GO
-CREATE TRIGGER [dbo].[update_state_new] ON [OperationsManager].[dbo].[AlertsQueue]
+--DROP TRIGGER [dbo].[CheckAlert]
+--GO
+CREATE TRIGGER [dbo].[CheckAlert] ON [OperationsManager].[dbo].[AlertsQueue]
 INSTEAD OF INSERT
 AS
 BEGIN

@@ -10,9 +10,7 @@
     $command = $connection.CreateCommand() 
     $command.CommandText = $query 
     $adapter = New-Object -TypeName System.Data.SqlClient.SqlDataAdapter $command 
-
     $dataset = New-Object -TypeName System.Data.DataSet 
-    #Write-Host $dataset -ForegroundColor Cyan
     $adapter.Fill($dataset) | Out-Null
     $dataset.Tables[0]
      
@@ -59,7 +57,7 @@ function Get-HTML {
     ) 
     
     $exludeFields = 'RowError','RowState','Table','ItemArray','HasErrors',
-                   'QID', 'SubscriptionID','Source','AlertParams','TimeStmp'
+                    'QID', 'SubscriptionID','Source','AlertParams','TimeStmp'
 
     #Fill Description
     $param = [xml]$alert.AlertParams
@@ -85,6 +83,7 @@ function Get-HTML {
     }
 
     #Create XML
+    $xml = New-Object system.Xml.XmlDocument
     $xml.LoadXml("<?xml version=`"1.0`" encoding=`"utf-8`"?><Alert></Alert>")
     $xmlA = $xml.SelectSingleNode("//Alert")
     
@@ -144,27 +143,29 @@ $xslt = New-Object System.Xml.Xsl.XslCompiledTransform
 $xslt.Load("$rootPath\template.xsl")
 
 #Get Subscriptions
-$subQ = "SELECT [SubscriptionId], [SubscriptionName],	[Subscribers] FROM [OperationsManager].[dbo].[SubscriptionsView]"
+$subQ = "SELECT * FROM [OperationsManager].[dbo].[SubscriptionsView]"
 $subscribtions = Get-DatabaseData -connectionString $conStr -query $subQ
+
 
 #Get alerts from Queue
 $AlertsQ =  Get-DatabaseData -connectionString $conStr -query "SELECT TOP 100 * FROM dbo.AlertsQueueView ORDER BY TimeStmp"
 
-foreach ($alert in $AlertsQ ){
+foreach ($alert in $AlertsQ ) {
     
     Write-Host $alert.Alert_ID -ForegroundColor Yellow
     
     #Create mail recipient dim
-    $subscribtion = $subscribtions | ? {$_.SubscriptionId -eq $alert.SubscriptionID}
-    $to = ($subscribtion | Select -ExpandProperty Subscribers).Split(';')
+    $subscribtion = $subscribtions | ? {$_.SubscriptionId -eq $alert.SubscriptionId}
+    $to = $subscribtion | Select -ExpandProperty Address
     
     #Fill Subscription fields
-    $alert.Subscription = $subscribtion.SubscriptionName
-    $alert.Subscribers  = $subscribtion.Subscribers 
+    $alert.Subscription = $subscribtion.SubscriptionName | Select -Unique
+    $alert.Subscribers  = $to -join "; " 
         
     #Fill subject
-    $subj = $alert.ResolutionStateName + ", Severity: " +
-            $alert.Severity + ", " +
+    $subj = "$($alert.Resolution_State)".Split(" ")[0]  + ", Severity: " +
+            $alert.Severity + ", Subscription: " +
+            $alert.Subscription + ", Details: " + 
             $alert.MonitoringObjectDisplayName + ", " + 
             $alert.Alert_Name
     
@@ -173,38 +174,11 @@ foreach ($alert in $AlertsQ ){
 
     #Send Mail
     Send-MailMessage -BodyAsHtml -From $from -To $to -Subject $subj -Body $body -SmtpServer $smtp -Encoding UTF8 -Verbose
-
-    #Write history
-    $Description = "Sended"
-    $sendQ = "INSERT INTO dbo.AlertsQueueHistory (AlertID,SubscriptionID,Source,isChangeState,Description,TimeStmp)
-            VALUES ('$($alert.Alert_ID)',
-                    '$($alert.SubscriptionID)',
-                    '$($alert.Source)',
-                    '$($alert.isChangeState)',
-                    '$Description', 
-                    '$($alert.TimeStmp)')"
-
-    Invoke-DatabaseQuery `
-         -connectionString $conStr `
-         -query $sendQ | Out-Null
-    
+  
     #Remove alert from Q
     Invoke-DatabaseQuery `
      -connectionString $conStr `
      -query "DELETE FROM dbo.AlertsQueue WHERE QID = '$($alert.QID)'" | Out-Null
 
-    #pause
-
 }
-
-
-
-
-
-
-
-
-
-
-
 

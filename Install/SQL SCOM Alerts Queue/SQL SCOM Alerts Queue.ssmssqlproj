@@ -43,17 +43,17 @@
           <AssociatedConnUserName />
           <FullPath>AlertsQueueView.sql</FullPath>
         </FileNode>
+        <FileNode Name="RemoveFromQTrigger.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SQLSCOM\SCOM:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>SQLSCOM\SCOM</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>RemoveFromQTrigger.sql</FullPath>
+        </FileNode>
         <FileNode Name="SubscribersView.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SQLSCOM\SCOM:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>SQLSCOM\SCOM</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>SubscribersView.sql</FullPath>
-        </FileNode>
-        <FileNode Name="UpdateStateTrigger.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
-          <FullPath>UpdateStateTrigger.sql</FullPath>
         </FileNode>
       </Items>
     </LogicalFolder>
