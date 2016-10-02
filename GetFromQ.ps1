@@ -142,6 +142,8 @@ $smtp    = $confXml.Settings.Sender.SMTPServerAddress
 $xslt = New-Object System.Xml.Xsl.XslCompiledTransform
 $xslt.Load("$rootPath\template.xsl")
 
+$stoperrors = 'Unable to connect to the remote server'
+
 #Get Subscriptions
 $subQ = "SELECT * FROM [OperationsManager].[dbo].[SubscriptionsView]"
 $subscribtions = Get-DatabaseData -connectionString $conStr -query $subQ
@@ -150,7 +152,7 @@ $subscribtions = Get-DatabaseData -connectionString $conStr -query $subQ
 #Get alerts from Queue
 $AlertsQ =  Get-DatabaseData -connectionString $conStr -query "SELECT TOP 100 * FROM dbo.AlertsQueueView ORDER BY TimeStmp"
 
-foreach ($alert in $AlertsQ ) {
+:SA foreach ($alert in $AlertsQ ) {
     
     Write-Host $alert.Alert_ID -ForegroundColor Yellow
     
@@ -173,12 +175,36 @@ foreach ($alert in $AlertsQ ) {
     $body = Get-HTML $alert $xslt
 
     #Send Mail
-    Send-MailMessage -BodyAsHtml -From $from -To $to -Subject $subj -Body $body -SmtpServer $smtp -Encoding UTF8 -Verbose
-  
-    #Remove alert from Q
-    Invoke-DatabaseQuery `
-     -connectionString $conStr `
-     -query "DELETE FROM dbo.AlertsQueue WHERE QID = '$($alert.QID)'" | Out-Null
+    Send-MailMessage -BodyAsHtml -From $from -To $to -Subject $subj -Body $body -SmtpServer $smtp -Encoding UTF8 -Verbose -ErrorVariable er
+    
+    #Check for errors
+    $stop = $false
+    if ($er.Count -gt 0){
+
+        foreach ($e in $er) {
+
+            if ($e.Exception.Message -in $stoperrors) {
+                $stop = $true
+                break SA
+            }
+        }
+    }
+
+    #If no Errors then remove Alert from Q
+    If (!$stop) {
+
+        Invoke-DatabaseQuery `
+         -connectionString $conStr `
+         -query "DELETE FROM dbo.AlertsQueue WHERE QID = '$($alert.QID)'" | Out-Null
+
+    }
+}
+
+#Write log
+$date = Get-Date -f {dd.mm.yyyy HH:mm:ss}
+foreach ($e in ($error.Exception.message | select -Unique)) {
+     
+     "[$date] " + $e >> $rootPath\Error.log
 
 }
 
