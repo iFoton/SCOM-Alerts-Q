@@ -4,7 +4,8 @@ CREATE TRIGGER [dbo].[RemoveFromQTrigger] ON [OperationsManager].[dbo].[AlertsQu
 AFTER DELETE AS
 BEGIN
 --UpdateState
-	IF (SELECT isChangeState FROM deleted) IS NOT Null
+	IF (SELECT isChangeState FROM deleted) IS NOT Null AND
+	   (SELECT TOP 1 ResolutionState FROM deleted d JOIN AlertView A ON d.AlertID = A.id) = 0
 	BEGIN
 		DECLARE @AlertId uniqueidentifier
 		DECLARE @BaseManagedEntityId uniqueidentifier

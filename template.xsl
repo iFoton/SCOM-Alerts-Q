@@ -4,6 +4,7 @@
 
 		<xsl:variable name="color">
 			<xsl:choose>
+			<xsl:when test="Alert/Resolution_State/node() = 'Closed (255)'">#90EE90</xsl:when>
 			<xsl:when test="Alert/Severity/node() = 'Warning'">#FAAC58</xsl:when>
 			<xsl:when test="Alert/Severity/node() = 'Critical'">#F78181</xsl:when>
 			<xsl:otherwise>#FFFFFF</xsl:otherwise>

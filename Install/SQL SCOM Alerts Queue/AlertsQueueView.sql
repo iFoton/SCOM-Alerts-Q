@@ -1,6 +1,6 @@
 USE OperationsManager
 GO
-CREATE VIEW dbo.AlertsQueueView  
+ALTER VIEW dbo.AlertsQueueView  
 AS 
 SELECT
 	Q.QID,
