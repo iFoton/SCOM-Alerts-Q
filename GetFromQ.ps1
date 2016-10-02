@@ -178,26 +178,21 @@ $AlertsQ =  Get-DatabaseData -connectionString $conStr -query "SELECT TOP 100 * 
     Send-MailMessage -BodyAsHtml -From $from -To $to -Subject $subj -Body $body -SmtpServer $smtp -Encoding UTF8 -Verbose -ErrorVariable er
     
     #Check for errors
-    $stop = $false
     if ($er.Count -gt 0){
 
         foreach ($e in $er) {
 
             if ($e.Exception.Message -in $stoperrors) {
-                $stop = $true
                 break SA
             }
         }
     }
 
     #If no Errors then remove Alert from Q
-    If (!$stop) {
+    Invoke-DatabaseQuery `
+        -connectionString $conStr `
+        -query "DELETE FROM dbo.AlertsQueue WHERE QID = '$($alert.QID)'" | Out-Null
 
-        Invoke-DatabaseQuery `
-         -connectionString $conStr `
-         -query "DELETE FROM dbo.AlertsQueue WHERE QID = '$($alert.QID)'" | Out-Null
-
-    }
 }
 
 #Write log
