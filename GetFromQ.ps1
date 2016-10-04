@@ -75,7 +75,7 @@ function Get-HTML {
     }
 
     #Fill Knowledge
-    if ($Alert.Knowledge) {
+    if ($Alert.Knowledge.Length -gt 1) {
         $Knowledge = fnMamlToHTML $Alert.Knowledge
         $Alert.Knowledge = 'Knowledge_replace'
     } else {
@@ -189,9 +189,9 @@ $AlertsQ =  Get-DatabaseData -connectionString $conStr -query "SELECT TOP 100 * 
     }
 
     #If no Errors then remove Alert from Q
-    Invoke-DatabaseQuery `
-        -connectionString $conStr `
-        -query "DELETE FROM dbo.AlertsQueue WHERE QID = '$($alert.QID)'" | Out-Null
+    #Invoke-DatabaseQuery `
+    #    -connectionString $conStr `
+    #    -query "DELETE FROM dbo.AlertsQueue WHERE QID = '$($alert.QID)'" | Out-Null
 
 }
 
