@@ -82,6 +82,28 @@ function Get-HTML {
         $exludeFields += 'Knowledge'
     }
 
+    #Context
+    $xmlContext = New-Object system.Xml.XmlDocument
+    $xmlContext.LoadXml($alert.Context)
+    If ($xmlContext.DataItem.Property){
+				
+		$Context = $xmlContext.DataItem.Property | Select-Object Name , @{Name="Value";Expression={$_."#text"}} | ConvertTo-HTML | Out-String		
+
+	} else {
+
+        $Context = "<table>"
+        $out = ($xmlContext.DataItem | Out-String).Split("`n")
+
+		ForEach ($Line in $out){
+            if ($Line.Length -gt 1) {
+                $Context += ("<tr><td>" + $Line.Replace(" : ",":</td><td>") + "</td></tr>")
+            }
+		}
+        $Context += "</table>"
+    }
+
+    $alert.Context = "Context_replace"
+    
     #Create XML
     $xml = New-Object system.Xml.XmlDocument
     $xml.LoadXml("<?xml version=`"1.0`" encoding=`"utf-8`"?><Alert></Alert>")
@@ -121,7 +143,7 @@ function Get-HTML {
     $htmlWriter   = New-Object System.IO.StringWriter("")
         
     $xslt.Transform($xmlReader,$null,$htmlWriter)
-    $html = $htmlWriter.ToString().Replace('Knowledge_replace',$Knowledge)
+    $html = $htmlWriter.ToString().Replace('Knowledge_replace',$Knowledge).Replace("Context_replace",$Context)
 
     Return $html
 
@@ -189,9 +211,9 @@ $AlertsQ =  Get-DatabaseData -connectionString $conStr -query "SELECT DISTINCT T
     }
 
     #If no Errors then remove Alert from Q
-    #Invoke-DatabaseQuery `
-    #    -connectionString $conStr `
-    #    -query "DELETE FROM dbo.AlertsQueue WHERE QID = '$($alert.QID)'" | Out-Null
+    Invoke-DatabaseQuery `
+        -connectionString $conStr `
+        -query "DELETE FROM dbo.AlertsQueue WHERE QID = '$($alert.QID)'" | Out-Null
 
 }
 
@@ -203,3 +225,4 @@ foreach ($e in ($error.Exception.message | select -Unique)) {
 
 }
 
+$error.Clear()
