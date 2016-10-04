@@ -150,7 +150,7 @@ $subscribtions = Get-DatabaseData -connectionString $conStr -query $subQ
 
 
 #Get alerts from Queue
-$AlertsQ =  Get-DatabaseData -connectionString $conStr -query "SELECT TOP 100 * FROM dbo.AlertsQueueView ORDER BY TimeStmp"
+$AlertsQ =  Get-DatabaseData -connectionString $conStr -query "SELECT DISTINCT TOP 100 * FROM dbo.AlertsQueueView ORDER BY TimeStmp"
 
 :SA foreach ($alert in $AlertsQ ) {
     
