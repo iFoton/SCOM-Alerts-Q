@@ -1,6 +1,6 @@
-USE OperationsManager
+USE SCOMAddons
 GO
-ALter VIEW dbo.SubscriptionsView  
+CREATE VIEW dbo.SubscriptionsView  
 AS
 SELECT
 	RuleId AS 'SubscriptionId', 
@@ -14,7 +14,7 @@ FROM
                 N .C.value('RecipientId[1]', 'varchar(4000)') SubscriberId,
                 N .C.query('.') AS xmlquery
            FROM (SELECT cast(MDTImplementationXML AS xml) Recxml
-                 FROM [dbo].[ModuleType] mt
+                 FROM [OperationsManager].[dbo].[ModuleType] mt
                  WHERE MDTName = 'Microsoft.SystemCenter.Notification.Recipients') a CROSS Apply
 					   Recxml.nodes('//Recipient') N (C)) r CROSS Apply
 					   xmlquery.nodes('//Device') D (C))
@@ -22,8 +22,8 @@ FROM
     (SELECT r.RuleId, R.DisplayName, D .C.value('RecipientId[1]', 'varchar(4000)') SubscriberId
      FROM
 		(SELECT RuleId, r.DisplayName, cast(RuleModuleConfiguration AS XML) xmlquery
-         FROM RuleModule rm JOIN 
-              RuleView r ON rm.RuleId = r.Id
+         FROM [OperationsManager].dbo.RuleModule rm JOIN 
+              [OperationsManager].dbo.RuleView r ON rm.RuleId = r.Id
          WHERE r.Category = 'Notification' AND RuleModuleName = 'CD1') r CROSS Apply
 			   xmlquery.nodes('//DirectoryReference') D (C))
     Subscriptions ON 

@@ -1,15 +1,15 @@
-USE OperationsManager
+USE SCOMAddons
 GO
-CREATE TRIGGER [dbo].[RemoveFromQTrigger] ON [OperationsManager].[dbo].[AlertsQueue]
+CREATE TRIGGER [dbo].[RemoveFromQTrigger] ON [SCOMAddons].[dbo].[AlertsQueue]
 AFTER DELETE AS
 BEGIN
 --UpdateState
-	IF (SELECT isChangeState FROM deleted) IS NOT Null AND
-	   (SELECT TOP 1 ResolutionState FROM deleted d JOIN AlertView A ON d.AlertID = A.id) = 0
+	IF (SELECT toState FROM deleted) > 0 AND
+	   (SELECT TOP 1 ResolutionState FROM deleted d JOIN [OperationsManager].dbo.AlertView A ON d.AlertID = A.id) = 0
 	BEGIN
 		DECLARE @AlertId uniqueidentifier
 		DECLARE @BaseManagedEntityId uniqueidentifier
-		DECLARE @ResolutionState tinyint = (SELECT isChangeState FROM deleted)
+		DECLARE @ResolutionState tinyint = (SELECT toState FROM deleted)
 		DECLARE @Owner nvarchar(255)
 		DECLARE @CustomField1 nvarchar(255)
 		DECLARE @CustomField2 nvarchar(255)
@@ -48,9 +48,9 @@ BEGIN
 				@ConnectorId = ConnectorId,
 				@TfsWorkItemId = TfsWorkItemId,
 				@TfsWorkItemOwner = TfsWorkItemOwner
-		FROM AlertView WHERE Id = (SELECT TOP 1 AlertId FROM deleted)
+		FROM [OperationsManager].dbo.AlertView WHERE Id = (SELECT TOP 1 AlertId FROM deleted)
 
-		EXEC dbo.p_AlertUpdate
+		EXEC [OperationsManager].dbo.p_AlertUpdate
 			@AlertId,
 			@BaseManagedEntityId,
 			@ResolutionState,
@@ -62,13 +62,13 @@ BEGIN
 			@TicketId,@ConnectorId,@ModifyingConnectorId,@TfsWorkItemId,@TfsWorkItemOwner
 	END
 --Write History
-	INSERT INTO dbo.AlertsQueueHistory
+	INSERT INTO [SCOMAddons].dbo.AlertsQueueHistory
 		SELECT TOP 1
 			QID,
 			AlertId,
 			SubscriptionId,
 			Source,
-			isChangeState,
+			toState,
 			'Sended' AS 'Description',
 			TimeStmp
 		FROM deleted

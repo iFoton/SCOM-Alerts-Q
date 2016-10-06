@@ -1,6 +1,6 @@
-USE OperationsManager
+USE SCOMAddons
 GO
-ALTER VIEW dbo.AlertsQueueView  
+CREATE VIEW dbo.AlertsQueueView  
 AS 
 SELECT
 	Q.QID,
@@ -27,19 +27,20 @@ SELECT
 	A.AlertParams,
 	'STUB' AS 'Subscription',
 	'STUB' AS 'Subscribers',
+	A.Context,
 	KA.KnowledgeContent AS 'Knowledge',
 	Q.TimeStmp
 FROM
-	dbo.AlertsQueue Q JOIN
-    AlertView A ON
+	AlertsQueue Q JOIN
+    [OperationsManager].dbo.AlertView A ON
     Q.AlertId = A.Id LEFT JOIN
-	RuleView R ON
+	[OperationsManager].dbo.RuleView R ON
 	A.MonitoringRuleId = R.Id LEFT JOIN
-	MonitorView M ON
+	[OperationsManager].dbo.MonitorView M ON
 	A.MonitoringRuleId = M.Id JOIN
-	ManagementPackView MP ON
+	[OperationsManager].dbo.ManagementPackView MP ON
 	(M.ManagementPackId = MP.Id) OR (R.ManagementPackId = MP.Id) LEFT JOIN
-	KnowledgeArticle KA ON
+	[OperationsManager].dbo.KnowledgeArticle KA ON
 	(M.Id = KA.KnowledgeReferenceId) OR (R.Id = KA.KnowledgeReferenceId) JOIN
-	ResolutionStateView RS ON
+	[OperationsManager].dbo.ResolutionStateView RS ON
 	A.ResolutionState = RS.ResolutionState

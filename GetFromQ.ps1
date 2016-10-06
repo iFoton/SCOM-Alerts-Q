@@ -167,12 +167,12 @@ $xslt.Load("$rootPath\template.xsl")
 $stoperrors = 'Unable to connect to the remote server'
 
 #Get Subscriptions
-$subQ = "SELECT * FROM [OperationsManager].[dbo].[SubscriptionsView]"
+$subQ = "SELECT * FROM [SCOMAddons].[dbo].[SubscriptionsView]"
 $subscribtions = Get-DatabaseData -connectionString $conStr -query $subQ
 
 
 #Get alerts from Queue
-$AlertsQ =  Get-DatabaseData -connectionString $conStr -query "SELECT DISTINCT TOP 100 * FROM dbo.AlertsQueueView ORDER BY TimeStmp"
+$AlertsQ =  Get-DatabaseData -connectionString $conStr -query "SELECT DISTINCT TOP 100 * FROM [SCOMAddons].[dbo].[AlertsQueueView] ORDER BY TimeStmp"
 
 :SA foreach ($alert in $AlertsQ ) {
     
@@ -213,12 +213,12 @@ $AlertsQ =  Get-DatabaseData -connectionString $conStr -query "SELECT DISTINCT T
     #If no Errors then remove Alert from Q
     Invoke-DatabaseQuery `
         -connectionString $conStr `
-        -query "DELETE FROM dbo.AlertsQueue WHERE QID = '$($alert.QID)'" | Out-Null
+        -query "DELETE FROM [SCOMAddons].[dbo].[AlertsQueue] WHERE QID = '$($alert.QID)'" | Out-Null
 
 }
 
 #Write log
-$date = Get-Date -f {dd.mm.yyyy HH:mm:ss}
+$date = Get-Date -f {dd.MM.yyyy HH:mm:ss}
 foreach ($e in ($error.Exception.message | select -Unique)) {
      
      "[$date] " + $e >> $rootPath\Error.log

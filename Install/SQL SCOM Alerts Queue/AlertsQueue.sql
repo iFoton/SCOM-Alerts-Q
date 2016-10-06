@@ -1,4 +1,4 @@
-USE OperationsManager
+USE SCOMAddons
 GO
 BEGIN TRANSACTION
 SET QUOTED_IDENTIFIER ON
@@ -20,7 +20,7 @@ CREATE TABLE dbo.AlertsQueue
 	AlertId uniqueidentifier NOT NULL,
 	SubscriptionId uniqueidentifier NOT NULL,
 	Source nvarchar(255) NULL,
-	isChangeState tinyint NULL,
+	toState tinyint NOT NULL,
 	TimeStmp DateTime DEFAULT GETDATE() NOT NULL
 	)  ON [PRIMARY]
 GO
