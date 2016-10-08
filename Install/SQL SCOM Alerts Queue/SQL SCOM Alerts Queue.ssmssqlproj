@@ -37,11 +37,23 @@
           <AssociatedConnUserName />
           <FullPath>AlertsQueueHistory.sql</FullPath>
         </FileNode>
+        <FileNode Name="AlertsQueueHistoryView.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SQLSCOM\SCOM:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>SQLSCOM\SCOM</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>AlertsQueueHistoryView.sql</FullPath>
+        </FileNode>
         <FileNode Name="AlertsQueueView.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SQLSCOM\SCOM:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>SQLSCOM\SCOM</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>AlertsQueueView.sql</FullPath>
+        </FileNode>
+        <FileNode Name="CreateDB.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SQLSCOM\SCOM:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>SQLSCOM\SCOM</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>CreateDB.sql</FullPath>
         </FileNode>
         <FileNode Name="RemoveFromQTrigger.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SQLSCOM\SCOM:True</AssociatedConnectionMoniker>

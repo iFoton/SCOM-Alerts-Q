@@ -1,13 +1,16 @@
 USE SCOMAddons
 GO
+DROP TRIGGER [dbo].[RemoveFromQTrigger]
+GO
 CREATE TRIGGER [dbo].[RemoveFromQTrigger] ON [SCOMAddons].[dbo].[AlertsQueue]
-AFTER DELETE AS
+INSTEAD OF DELETE AS
+DECLARE @AlertId uniqueidentifier = (SELECT TOP 1 AlertId FROM deleted)
 BEGIN
 --UpdateState
 	IF (SELECT toState FROM deleted) > 0 AND
-	   (SELECT TOP 1 ResolutionState FROM deleted d JOIN [OperationsManager].dbo.AlertView A ON d.AlertID = A.id) = 0
+	   (SELECT TOP 1 ResolutionState FROM [OperationsManager].dbo.AlertView WHERE ID = @AlertId) = 0
 	BEGIN
-		DECLARE @AlertId uniqueidentifier
+		
 		DECLARE @BaseManagedEntityId uniqueidentifier
 		DECLARE @ResolutionState tinyint = (SELECT toState FROM deleted)
 		DECLARE @Owner nvarchar(255)
@@ -30,26 +33,31 @@ BEGIN
 		DECLARE @TfsWorkItemId nvarchar(150)
 		DECLARE @TfsWorkItemOwner nvarchar(255)
 
-		SELECT  @AlertId = Id,
-				@BaseManagedEntityId = MonitoringObjectId,
+		SELECT  @BaseManagedEntityId = MonitoringObjectId,
 				@Owner = Owner,
-				@CustomField1 = CustomField1,
-				@CustomField2 = CustomField2,
-				@CustomField3 = CustomField3,
-				@CustomField4 = CustomField4,
-				@CustomField5 = CustomField5,
-				@CustomField6 = CustomField6,
-				@CustomField7 = CustomField7,
-				@CustomField8 = CustomField8,
-				@CustomField9 = CustomField9,
-				@CustomField10 = CustomField10,
+				@CustomField8 = ISNULL(CustomField8,''),
 				@TimeLastModified = LastModified,
 				@TicketId = TicketId,
 				@ConnectorId = ConnectorId,
 				@TfsWorkItemId = TfsWorkItemId,
 				@TfsWorkItemOwner = TfsWorkItemOwner
-		FROM [OperationsManager].dbo.AlertView WHERE Id = (SELECT TOP 1 AlertId FROM deleted)
-
+		FROM [OperationsManager].dbo.AlertView WHERE Id = @AlertId
+		--Custom Fields
+		SELECT  @CustomField1 = ('Alert Id: ' + CONVERT(varchar(36),AQV.Alert_Id)),
+				@CustomField2 = ('Category: ' + AQV.Category),
+				@CustomField3 = (AQV.Type + ' Name: ' + AQV.MonitorRule_Name),
+				@CustomField4 = ('Management Pack: ' + AQV.Management_Pack),
+				@CustomField5 = ('Object Name: ' + AQV.MonitoringObjectDisplayName),
+				@CustomField6 = ('Full Name: ' +AQV.MonitoringObjectFullName),
+				@CustomField7 = ('Object Id: ' + CONVERT(varchar(36),AQV.MonitoringObjectId)),
+				@CustomField8 = ('Subscription: ' + REPLACE(@CustomField8,'Subscription: ','') + RV.DisplayName +'; '),
+				@CustomField9 = ('Added to Queue at: ' + FORMAT(SWITCHOFFSET(CONVERT(datetimeoffset,AQV.TimeStmp),'+00:00'), 'd MMMM yyyy HH:mm:ss', 'en-US')),
+				@CustomField10 = ('Sended at: ' + FORMAT(SWITCHOFFSET(CONVERT(datetimeoffset,GETDATE()),'+00:00'), 'd MMMM yyyy HH:mm:ss', 'en-US'))
+		FROM [SCOMAddons].dbo.AlertsQueueView AQV 
+			 LEFT JOIN [OperationsManager].dbo.RuleView RV 
+			 ON AQV.SubscriptionId = RV.Id
+		WHERE AQV.Alert_Id = @AlertId
+		--Execute stored procedure
 		EXEC [OperationsManager].dbo.p_AlertUpdate
 			@AlertId,
 			@BaseManagedEntityId,
@@ -73,5 +81,7 @@ BEGIN
 			TimeStmp
 		FROM deleted
 
+	DELETE FROM [SCOMAddons].dbo.AlertsQueue
+	WHERE QID IN (SELECT QID FROM deleted)
 END
 GO
