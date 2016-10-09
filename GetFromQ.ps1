@@ -83,27 +83,29 @@ function Get-HTML {
     }
 
     #Context
-    $xmlContext = New-Object system.Xml.XmlDocument
-    $xmlContext.LoadXml($alert.Context)
-    If ($xmlContext.DataItem.Property){
+    If ($alert.Context.Length -gt 1){
+        $xmlContext = New-Object system.Xml.XmlDocument
+        $xmlContext.LoadXml($alert.Context)
+        If ($xmlContext.DataItem.Property){
 				
-		$Context = $xmlContext.DataItem.Property | Select-Object Name , @{Name="Value";Expression={$_."#text"}} | ConvertTo-HTML | Out-String		
+		    $Context = $xmlContext.DataItem.Property | Select-Object Name , @{Name="Value";Expression={$_."#text"}} | ConvertTo-HTML | Out-String		
 
-	} else {
+	    } else {
 
-        $Context = "<table>"
-        $out = ($xmlContext.DataItem | Out-String).Split("`n")
+            $Context = "<table>"
+            $out = ($xmlContext.DataItem | Out-String).Split("`n")
 
-		ForEach ($Line in $out){
-            if ($Line.Length -gt 1) {
-                $Context += ("<tr><td>" + $Line.Replace(" : ",":</td><td>") + "</td></tr>")
-            }
-		}
-        $Context += "</table>"
+		    ForEach ($Line in $out){
+                if ($Line.Length -gt 1) {
+                    $Context += ("<tr><td>" + $Line.Replace(" : ",":</td><td>") + "</td></tr>")
+                }
+		    }
+            $Context += "</table>"
+        }
+
+        $alert.Context = "Context_replace"
     }
 
-    $alert.Context = "Context_replace"
-    
     #Create XML
     $xml = New-Object system.Xml.XmlDocument
     $xml.LoadXml("<?xml version=`"1.0`" encoding=`"utf-8`"?><Alert></Alert>")
@@ -187,6 +189,7 @@ $AlertsQ =  Get-DatabaseData -connectionString $conStr -query "SELECT DISTINCT T
     $alert.Subscribers  = $to -join "; " 
         
     #Fill subject
+    $alert.Resolution_State = "$($alert.Resolution_State)".Replace("Added to Queue (10)","New (0)")
     $subj = "$($alert.Resolution_State)".Split(" ")[0]  + ", Severity: " +
             $alert.Severity + ", Subscription: " +
             $alert.Subscription + ", Details: " + 
