@@ -23,7 +23,7 @@ BEGIN
 		DECLARE @CustomField7 nvarchar(255)
 		DECLARE @CustomField8 nvarchar(255)
 		DECLARE @CustomField9 nvarchar(255)
-		DECLARE @CustomField10 nvarchar(255) = ('Sended at: ' + FORMAT(SWITCHOFFSET(CONVERT(datetimeoffset,GETDATE()),'+00:00'), 'd MMMM yyyy HH:mm:ss', 'en-US'))
+		DECLARE @CustomField10 nvarchar(255) = ('Sended at: ' + FORMAT(SWITCHOFFSET(CONVERT(datetimeoffset,GETDATE()),'+10:00'), 'd MMMM yyyy HH:mm:ss', 'en-US'))
 		DECLARE @Comments nvarchar(2000) = N'Alert modified by Alerts Queue solution'
 		DECLARE @TimeLastModified datetime
 		DECLARE @ModifiedBy nvarchar(255) = N'AlertQ'

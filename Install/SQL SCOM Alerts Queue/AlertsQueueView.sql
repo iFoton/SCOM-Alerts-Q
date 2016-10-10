@@ -1,12 +1,12 @@
 USE SCOMAddons
 GO
-CREATE VIEW dbo.AlertsQueueView  
+ALTER VIEW dbo.AlertsQueueView  
 AS 
 SELECT
 	Q.QID,
 	Q.SubscriptionID,
 	Q.Source,
-	A.AlertStringName AS 'Alert_Name',
+	ISNULL(A.AlertStringName,A.Name) AS 'Alert_Name',
 	Severity = CASE A.Severity WHEN '1' THEN 'Warning' WHEN '2' THEN 'Critical' ELSE 'Information' END,
 	A.TimeRaised AS 'Time_Raised',
 	A.Category,

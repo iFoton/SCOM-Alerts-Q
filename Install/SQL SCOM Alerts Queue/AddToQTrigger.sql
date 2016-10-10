@@ -86,7 +86,7 @@ BEGIN
 			SET @CustomField10 = 'Ignored, Gates unavailable.'		
 		END
 END
-
+--Add Alert to Queue
 IF @ResolutionState != 200
 BEGIN
 	INSERT INTO [SCOMAddons].dbo.AlertsQueue
@@ -101,7 +101,8 @@ BEGIN
 END
 
 --Update alert
-IF @ResolutionState != 0
+IF (SELECT TOP 1 ResolutionState FROM [OperationsManager].dbo.AlertView WHERE Id = @AlertID) = 0 AND	
+	@ResolutionState != 0
 BEGIN
 	SELECT  @BaseManagedEntityId = MonitoringObjectId,
 			@Owner = Owner,
@@ -111,7 +112,7 @@ BEGIN
 			@ConnectorId = ConnectorId,
 			@TfsWorkItemId = TfsWorkItemId,
 			@TfsWorkItemOwner = TfsWorkItemOwner
-	FROM [OperationsManager].dbo.AlertView WHERE Id = @AlertId
+	FROM    [OperationsManager].dbo.AlertView WHERE Id = @AlertId
 	--Custom Fields
 	SELECT  @CustomField1 = ('Alert Id: ' + CONVERT(varchar(36),AQV.Alert_Id)),
 			@CustomField2 = ('Category: ' + AQV.Category),
@@ -121,8 +122,8 @@ BEGIN
 			@CustomField6 = ('Full Name: ' + AQV.MonitoringObjectFullName),
 			@CustomField7 = ('Object Id: ' + CONVERT(varchar(36),AQV.MonitoringObjectId)),
 			@CustomField8 = ('Subscription: ' + REPLACE(@CustomField8,'Subscription: ','') + RV.DisplayName +'; '),
-			@CustomField9 = ('Added to Queue at: ' + FORMAT(SWITCHOFFSET(CONVERT(datetimeoffset,GETDATE()),'+00:00'), 'd MMMM yyyy HH:mm:ss', 'en-US'))
-	FROM [SCOMAddons].dbo.AlertsQueueView AQV 
+			@CustomField9 = ('Added to Queue at: ' + FORMAT(SWITCHOFFSET(CONVERT(datetimeoffset,GETDATE()),'+10:00'), 'd MMMM yyyy HH:mm:ss', 'en-US'))
+	FROM    [SCOMAddons].dbo.AlertsQueueView AQV 
 			LEFT JOIN [OperationsManager].dbo.RuleView RV 
 			ON AQV.SubscriptionId = RV.Id
 	WHERE AQV.Alert_Id = @AlertId
