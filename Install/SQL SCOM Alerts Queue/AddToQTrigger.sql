@@ -9,6 +9,7 @@ BEGIN
 
 DECLARE @stop bit = 0
 DECLARE @AlertId uniqueidentifier = (SELECT AlertId FROM inserted)
+DECLARE @currResolutionState tinyint = (SELECT TOP 1 ResolutionState FROM [OperationsManager].dbo.AlertView WHERE Id = @AlertID)
 
 DECLARE @BaseManagedEntityId uniqueidentifier
 DECLARE @ResolutionState tinyint = CASE (SELECT toState FROM inserted) WHEN 0 THEN 0 ELSE 10 END
@@ -86,6 +87,16 @@ BEGIN
 			SET @CustomField10 = 'Ignored, Gates unavailable.'		
 		END
 END
+
+--If this is Closed Alert then check what we send notification about it early
+IF @currResolutionState = 255
+BEGIN
+	IF @AlertId NOT IN (SELECT AlertId FROM [SCOMAddons].dbo.AlertsQueueHistory WHERE Description = 'Sended'
+						UNION
+						SELECT AlertId FROM [SCOMAddons].dbo.AlertsQueue)
+	SET @ResolutionState = 200
+END
+
 --Add Alert to Queue
 IF @ResolutionState != 200
 BEGIN
@@ -101,8 +112,7 @@ BEGIN
 END
 
 --Update alert
-IF (SELECT TOP 1 ResolutionState FROM [OperationsManager].dbo.AlertView WHERE Id = @AlertID) = 0 AND	
-	@ResolutionState != 0
+IF @currResolutionState = 0 AND	@ResolutionState != 0
 BEGIN
 	SELECT  @BaseManagedEntityId = MonitoringObjectId,
 			@Owner = Owner,
