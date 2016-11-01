@@ -61,6 +61,7 @@ DECLARE @AlertId uniqueidentifier = (SELECT TOP 1 AlertId FROM deleted)
 			[SCOMAddons].dbo.AlertsQueueView AQV 
 			LEFT JOIN [OperationsManager].dbo.RuleView RV 
 			ON AQV.SubscriptionId = RV.Id
+		WHERE AQV.Alert_Id = @AlertId
 
 		--Execute stored procedure
 		EXEC [OperationsManager].dbo.p_AlertUpdate

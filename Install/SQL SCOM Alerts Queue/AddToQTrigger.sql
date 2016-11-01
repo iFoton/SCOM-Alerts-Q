@@ -69,7 +69,7 @@ BEGIN
 END
 
 --If this is Closed Alert then check what we send notification about it early
-ELSE IF @currResolutionState = 255
+IF @currResolutionState = 255
 BEGIN
 	IF @AlertId NOT IN (SELECT AlertId FROM [SCOMAddons].dbo.AlertsQueueHistory WHERE Description = 'Sended'
 						UNION
