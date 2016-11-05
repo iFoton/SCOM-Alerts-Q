@@ -72,3 +72,5 @@ Queue Handler Part implemented as scheduled PowerShell script that runs every X 
 ### Report Examples
 
 ![alt tag](https://github.com/iFoton/SCOM-Alerts-Q/blob/master/img/ReportExamples.JPG)
+
+###### Reports generates from XML by XSLT template. You can modify template to your liking.
