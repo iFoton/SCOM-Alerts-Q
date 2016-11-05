@@ -6,6 +6,7 @@ Advanced Queue for SCOM Alerts Notifications. High-performance, scalable, custom
 # How it Works
 ## 1. Management Server Part
 ![alt tag](https://github.com/iFoton/SCOM-Alerts-Q/blob/master/img/MS%20Part.JPG)
+
 When SCOM raises an alert, subscription aimed at him runs a small VBS script and passes them 4 parameters:
 
 Parameter | Description
@@ -20,6 +21,7 @@ This script executes the SQL command, which adds an alert to Queue DB.
 
 ## 2. SQL Part
 ![alt tag](https://github.com/iFoton/SCOM-Alerts-Q/blob/master/img/SQL-Part.JPG)
+
 SQL Part implemented as separeted database with few tables, triggers and views.
 
 Type | Name | Description
@@ -56,3 +58,17 @@ When you remove an alert from the Queue, the trigger `RemoveFromQTrigger` makes 
 2. Write history.
 
 ###### Update alert's status is performed using a stored procedure `p_AlertUpdate` from the SCOM database.
+
+## 3. Queue Handler Part
+
+Queue Handler Part implemented as scheduled PowerShell script that runs every X minutes.
+
+1. Gets alerts from `AlertsQueueView`.
+2. Gets subscription info from `SubscriptionsView`.
+3. Generates html report for each.
+4. Sends they by e-mail to subscribers.
+5. Removes alerts from the Queue.
+
+### Report Examples
+
+![alt tag](https://github.com/iFoton/SCOM-Alerts-Q/blob/master/img/ReportExamples.JPG)
