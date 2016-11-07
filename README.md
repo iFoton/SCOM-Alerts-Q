@@ -17,7 +17,7 @@ Parameter | Description
 0-255 | State that we have set for the alert after the process it
 
 ###### If you pass 0, then no any manipulation of the alert's state will not be made.
-This script executes the SQL command, which adds an alert to Queue DB.
+This script executes the SQL command, which adds an alert to the Queue DB.
 
 ## 2. SQL Part
 ![alt tag](https://github.com/iFoton/SCOM-Alerts-Q/blob/master/img/SQL-Part.JPG)
