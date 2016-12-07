@@ -10,7 +10,8 @@
     $command = $connection.CreateCommand() 
     $command.CommandText = $query 
     $adapter = New-Object -TypeName System.Data.SqlClient.SqlDataAdapter $command 
-    $dataset = New-Object -TypeName System.Data.DataSet 
+    $dataset = New-Object -TypeName System.Data.DataSet
+    $adapter.SelectCommand.CommandTimeout = 0
     $adapter.Fill($dataset) | Out-Null
     $dataset.Tables[0]
      
@@ -174,7 +175,7 @@ $subscribtions = Get-DatabaseData -connectionString $conStr -query $subQ
 
 
 #Get alerts from Queue
-$AlertsQ =  Get-DatabaseData -connectionString $conStr -query "SELECT DISTINCT TOP 100 * FROM [SCOMAddons].[dbo].[AlertsQueueView] ORDER BY TimeStmp"
+$AlertsQ =  Get-DatabaseData -connectionString $conStr -query "SELECT DISTINCT * FROM (SELECT TOP 100 * FROM [SCOMAddons].[dbo].[AlertsQueueView]) AS TMP"
 
 :SA foreach ($alert in $AlertsQ ) {
     
