@@ -32,7 +32,7 @@ BEGIN
 END
 
 --Checking Gates Availability
-ELSE IF (SELECT DISTINCT AlertStringName FROM [OperationsManager].dbo.AlertView WHERE id = @AlertID) IN ('Failed to Connect to Computer','Health Service Heartbeat Failure')
+ELSE IF (SELECT TOP 1 AlertStringName FROM [OperationsManager].dbo.AlertView WHERE id = @AlertID) IN ('Failed to Connect to Computer','Health Service Heartbeat Failure')
 BEGIN
 	IF (SELECT SUM(CONVERT(int,MEGV.IsAvailable))
 		FROM [OperationsManager].dbo.TypedManagedEntity AS TME 
