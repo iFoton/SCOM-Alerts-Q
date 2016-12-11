@@ -26,7 +26,7 @@ DECLARE @AlertId uniqueidentifier = (SELECT TOP 1 AlertId FROM deleted)
 		DECLARE @CustomField7 nvarchar(255)
 		DECLARE @CustomField8 nvarchar(255)
 		DECLARE @CustomField9 nvarchar(255)
-		DECLARE @CustomField10 nvarchar(255) = ('Sended at: ' + FORMAT(SWITCHOFFSET(CONVERT(datetimeoffset,GETDATE()),'+10:00'), 'd MMMM yyyy HH:mm:ss', 'en-US'))
+		DECLARE @CustomField10 nvarchar(255) = ('Sent at: ' + FORMAT(SWITCHOFFSET(CONVERT(datetimeoffset,GETDATE()),'+10:00'), 'd MMMM yyyy HH:mm:ss', 'en-US'))
 		DECLARE @Comments nvarchar(2000) = N'Alert modified by Alerts Queue solution'
 		DECLARE @TimeLastModified datetime
 		DECLARE @ModifiedBy nvarchar(255) = N'AlertQ'
@@ -83,7 +83,7 @@ DECLARE @AlertId uniqueidentifier = (SELECT TOP 1 AlertId FROM deleted)
 			SubscriptionId,
 			Source,
 			toState,
-			'Sended' AS 'Description',
+			'Sent' AS 'Description',
 			TimeStmp
 		FROM deleted
 --Delete from Queue

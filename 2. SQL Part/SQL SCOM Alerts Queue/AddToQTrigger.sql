@@ -23,7 +23,7 @@ BEGIN
 			SubscriptionID,
 			Source,
 			toState,
-			'Ignored, No Alert in AlertView.' AS 'Description',
+			'Ignored, No Alert in AlertView' AS 'Description',
 			(SELECT GETDATE()) AS 'TimeStmp'
 		FROM inserted
 	
@@ -34,6 +34,15 @@ END
 --Checking Gates Availability
 ELSE IF (SELECT TOP 1 AlertStringName FROM [OperationsManager].dbo.AlertView WHERE id = @AlertID) IN ('Failed to Connect to Computer','Health Service Heartbeat Failure')
 BEGIN
+
+	CREATE TABLE #id (id uniqueidentifier)
+	INSERT #id (id) SELECT DISTINCT id 
+					FROM [OperationsManager].dbo.ManagedEntityGenericView 
+					WHERE DisplayName = (SELECT MonitoringObjectDisplayName
+										 FROM [OperationsManager].dbo.AlertView 
+										 WHERE id = @AlertId) AND
+						  FullName LIKE 'Microsoft.Windows.Computer:%'
+
 	IF (SELECT SUM(CONVERT(int,MEGV.IsAvailable))
 		FROM [OperationsManager].dbo.TypedManagedEntity AS TME 
 		 INNER JOIN [OperationsManager].dbo.BaseManagedEntity AS BME 
@@ -46,32 +55,30 @@ BEGIN
 			 ON BME2.[BaseManagedEntityId] = HSC.[SourceEntityId] 
 		WHERE (((TME.[IsDeleted] = 0) AND (MEGV.[IsDeleted] = 0 AND MEGV.[TypedMonitoringObjectIsDeleted] = 0) AND (HSC.[IsDeleted] = 0) AND 
 			  (TME.[ManagedTypeId] = '9189A49E-B2DE-CAB0-2E4F-4925B68E335D') AND (HSC.[RelationshipTypeId] IN ('37848e16-37a2-b81b-daaf-60a5a626be93','CA26F3F0-B8CE-C193-D6DF-632D53DEE714')))) AND
-		      ([BME2].[TopLevelHostEntityId] IN (SELECT id 
-												 FROM [OperationsManager].dbo.ManagedEntityGenericView 
-												 WHERE DisplayName = (SELECT MonitoringObjectDisplayName
-																	  FROM [OperationsManager].dbo.AlertView 
-																	  WHERE id = @AlertID) AND FullName LIKE 'Microsoft.Windows.Computer:%'))) = 0
-		BEGIN
-			INSERT INTO [SCOMAddons].dbo.AlertsQueueHistory
-				SELECT 
-					(SELECT NEWID()) as 'QID',
-					AlertId,
-					SubscriptionID,
-					Source,
-					toState,
-					'Ignored, Gates Unavailable.' AS 'Description',
-					(SELECT GETDATE()) AS 'TimeStmp'
-				FROM inserted
+		      ([BME2].[TopLevelHostEntityId] IN (SELECT id FROM #id))) = 0
+	BEGIN
+		INSERT INTO [SCOMAddons].dbo.AlertsQueueHistory
+			SELECT 
+				(SELECT NEWID()) as 'QID',
+				AlertId,
+				SubscriptionID,
+				Source,
+				toState,
+				'Ignored, Gates Unavailable' AS 'Description',
+				(SELECT GETDATE()) AS 'TimeStmp'
+			FROM inserted
 
-			SET @ResolutionState = 200
-			SET @CustomField10 = 'Ignored, Gates Unavailable'	
-		END
+		SET @ResolutionState = 200
+		SET @CustomField10 = 'Ignored, Gates Unavailable'	
+	END
+
+	DROP TABLE #id
 END
 
 --If this is Closed Alert then check what we send notification about it early
 IF @currResolutionState = 255
 BEGIN
-	IF @AlertId NOT IN (SELECT AlertId FROM [SCOMAddons].dbo.AlertsQueueHistory WHERE Description = 'Sended'
+	IF @AlertId NOT IN (SELECT AlertId FROM [SCOMAddons].dbo.AlertsQueueHistory WHERE Description = 'Sent'
 						UNION
 						SELECT AlertId FROM [SCOMAddons].dbo.AlertsQueue)
 	SET @ResolutionState = 200
