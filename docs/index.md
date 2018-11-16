@@ -1,7 +1,6 @@
 # xxx
 ## yyy
-<details open>
-<summary>Want to ruin the surprise?</summary>
-<br>
-Well, you asked for it!
 <details>
+<summary>Want to ruin the surprise?</summary>
+Well, you asked for it!
+</details>
